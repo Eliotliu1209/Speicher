@@ -1,0 +1,235 @@
+#industrial data science 
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jul  2 18:20:49 2021
+
+@author: Yanchen
+"""
+import pandas
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import metrics
+
+
+
+#Import of ISO-BAGs
+df1 = pd.read_csv("D:/IDS2/iso_bag_1/isobag1_bereinigt.csv")
+df2 = pd.read_csv("D:/IDS2/iso_bag_2/isobag2_bereinigt.csv")
+df5 = pd.read_csv("D:/IDS2/iso_bag_5/isobag5_bereinigt.csv")
+
+
+
+#######concat aller bags
+dfall = pd.concat([df1, df2, df5], axis=0)
+
+#dfall = pd.concat([dfall.drop(["optical_density"], axis=1), dfall["optical_density"]], axis=1).dropna()
+#scatterdata(1,dfall,"optical_density")
+
+#dfall['optical_density'] = dfall['optical_density'].apply(np.log1p)
+#dfall.hist(by="Time",bins=45,figsize=(15,10))
+#plt.show()
+from sklearn import model_selection
+dftrain = dfall.drop(["Time","optical_density","soft_OD650"], inplace = False, axis = 1)
+
+
+train_set, test_set = model_selection.train_test_split(dfall,test_size=0.2,random_state=40)
+ges_feature = train_set[dftrain.columns]
+ges_label = train_set['optical_density'].copy()
+test_feature = test_set[dftrain.columns]
+#test_set.drop(['optical_density'],axis=1)
+test_label = test_set['optical_density'].copy()
+
+#Größe und Attribute(Alex)
+#print('Training_Features_Shape:', ges_feature.shape)
+#print('Training_Labels_Shape:', ges_label.shape)
+#print('Testing_Features_Shape:', test_feature.shape)
+#print('Testing_Labels_Shape:', test_label.shape)
+
+
+# #linear regression
+from sklearn.linear_model import LinearRegression
+lin_reg = LinearRegression()
+lin_reg.fit(ges_feature, ges_label)
+
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import r2_score
+#OP_predictions = lin_reg.predict(ges_feature)
+# lin_mse = mean_squared_error(ges_label,OP_predictions)
+# lin_rmse = np.sqrt(lin_mse)
+# print("lin_rmse:",lin_rmse)
+
+# # k-Validierung in 10-Teilen
+from sklearn.model_selection import  cross_val_score
+# lin_score = cross_val_score(lin_reg,ges_feature,ges_label,scoring="neg_mean_squared_error",cv=10)
+# lin_rmse_score = np.sqrt(-lin_score)
+# print("cross Validierung:",lin_rmse_score)
+# print("dirchschnittliche:",lin_rmse_score.mean())
+# print("Standardabweichung:",lin_rmse_score.std())
+
+# #Test teil score
+# OP_test_predictions = lin_reg.predict(test_feature)
+# test_mse = mean_squared_error(test_label,OP_test_predictions)
+# test_rmse = np.sqrt(test_mse)
+# print("lin_reg Test score rmse:",test_rmse)
+# test_mae = mean_absolute_error(test_label,OP_test_predictions)
+# print("lin_reg Test score mae:",test_mae)
+# test_mape = np.mean(np.abs((OP_test_predictions - test_label) / test_label)) * 100
+# print("lin_reg Test score mape:",test_mape)
+# test_rsquared = r2_score(test_label,OP_test_predictions)
+# print("lin_reg R score:",test_rsquared)
+
+
+
+
+""""#Random forest
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor(n_estimators=75,max_depth=7)
+forest_reg.fit(ges_feature,ges_label)
+forest_predictions = forest_reg.predict(ges_feature)
+forest_mse = mean_squared_error(ges_label,forest_predictions)
+forest_rmse = np.sqrt(forest_mse)
+print("forest_rmse:",forest_rmse)
+
+forest_score = cross_val_score(forest_reg,ges_feature,ges_label,scoring="neg_mean_squared_error",cv=10)
+forest_rmse_score = np.sqrt(-forest_score)
+print("cross Validierung:",forest_rmse_score)
+print("dirchschnittliche:",forest_rmse_score.mean())
+print("Standardabweichung:",forest_rmse_score.std())
+
+OP_test_predictions = forest_reg.predict(test_feature)
+test_mse = mean_squared_error(test_label,OP_test_predictions)
+test_rmse = np.sqrt(test_mse)
+print("Rafo Test score rmse:",test_rmse)
+test_mae = mean_absolute_error(test_label,OP_test_predictions)
+print("Rafo Test score mae:",test_mae)
+test_mape = np.mean(np.abs((OP_test_predictions - test_label) / test_label)) * 100
+print("Rafo Test score mape:",test_mape)
+test_rsquared = r2_score(test_label,OP_test_predictions)
+print("Rafo R score:",test_rsquared)
+
+#Feature-Importance:
+
+# Speichern der Attributnamen
+feature_list = list(dftrain.columns)
+
+# Numerical importances der Attribute
+importances = list(forest_reg.feature_importances_)
+
+# Liste Wichtigkeit und Attribute
+feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
+
+# Sortieren nach höchster Importance
+feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+
+# Ausgabe Attribut und Wichtigkeit für Model
+[print('Attribut: {:20} Importance: {}'.format(*pair)) for pair in feature_importances];
+
+#import matplotlib.pyplot as plt
+#matplotlib inline
+
+# Style
+plt.style.use('fivethirtyeight')
+
+# List x
+x_values = list(range(len(importances)))
+
+# Bar chart
+plt.bar(x_values, importances, orientation = 'vertical')
+
+# Tick labels x axis
+plt.xticks(x_values, feature_list, rotation='vertical')
+
+# Axis labels + title
+plt.ylabel('Importance'); plt.xlabel('Attribut'); plt.title('Attribut Importances');
+plt.plot()
+plt.show()"""
+
+
+
+#Random forest mit den 5 wichtigsten Attributen
+dftrain = dfall.drop(["Time","optical_density","soft_OD650","gmp251_co2_in","gmp251_co2_out","led_columns"], inplace = False, axis = 1)
+train_set, test_set = model_selection.train_test_split(dfall,test_size=0.2,random_state=40)
+ges_feature = train_set[dftrain.columns]
+ges_label = train_set['optical_density'].copy()
+test_feature = test_set[dftrain.columns]
+#test_set.drop(['optical_density'],axis=1)
+test_label = test_set['optical_density'].copy()
+test_time = test_set['Time'].copy()
+
+
+print("##################Random-Forest mit den 5 wichtigsten Attributen##########")
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor(n_estimators=75,max_depth=7)
+forest_reg.fit(ges_feature,ges_label)
+forest_predictions = forest_reg.predict(ges_feature)
+forest_mse = mean_squared_error(ges_label,forest_predictions)
+forest_rmse = np.sqrt(forest_mse)
+print("forest_rmse:",forest_rmse)
+
+forest_score = cross_val_score(forest_reg,ges_feature,ges_label,scoring="neg_mean_squared_error",cv=10)
+forest_rmse_score = np.sqrt(-forest_score)
+print("cross Validierung:",forest_rmse_score)
+print("dirchschnittliche:",forest_rmse_score.mean())
+print("Standardabweichung:",forest_rmse_score.std())
+
+OP_test_predictions = forest_reg.predict(test_feature)
+test_mse = mean_squared_error(test_label,OP_test_predictions)
+test_rmse = np.sqrt(test_mse)
+print("Rafo Test score rmse:",test_rmse)
+test_mae = mean_absolute_error(test_label,OP_test_predictions)
+print("Rafo Test score mae:",test_mae)
+test_mape = np.mean(np.abs((OP_test_predictions - test_label) / test_label)) * 100
+print("Rafo Test score mape:",test_mape)
+test_rsquared = r2_score(test_label,OP_test_predictions)
+print("Rafo R score:",test_rsquared)
+
+
+#g = plt.scatter(test_label, OP_test_predictions)
+
+g = plt.plot(test_time,(OP_test_predictions - test_label)/test_label, marker="o",linestyle ="")
+plt.title("rel. Fehler gegen die Zeit")
+plt.xlabel("kodierte Zeit")
+plt.ylabel("rel. Fehler von optical_density")
+plt.ylim([-1,1])
+plt.draw()
+plt.show()
+stop
+
+#Yanchens original RF mit Zeit
+forest_reg = RandomForestRegressor(n_estimators=75,max_depth=7)
+forest_reg.fit(ges_feature,ges_label)
+forest_predictions = forest_reg.predict(ges_feature)
+forest_mse = mean_squared_error(ges_label,forest_predictions)
+forest_rmse = np.sqrt(forest_mse)
+print("forest_rmse:",forest_rmse)
+
+forest_score = cross_val_score(forest_reg,ges_feature,ges_label,scoring="neg_mean_squared_error",cv=10)
+forest_rmse_score = np.sqrt(-forest_score)
+print("cross Validierung:",forest_rmse_score)
+print("dirchschnittliche:",forest_rmse_score.mean())
+print("Standardabweichung:",forest_rmse_score.std())
+
+OP_test_predictions = forest_reg.predict(test_feature)
+test_mse = mean_squared_error(test_label,OP_test_predictions)
+test_rmse = np.sqrt(test_mse)
+print("Rafo Test score rmse:",test_rmse)
+test_mae = mean_absolute_error(test_label,OP_test_predictions)
+print("Rafo Test score mae:",test_mae)
+test_mape = np.mean(np.abs((OP_test_predictions - test_label) / test_label)) * 100
+print("Rafo Test score mape:",test_mape)
+test_rsquared = r2_score(test_label,OP_test_predictions)
+print("Rafo R score:",test_rsquared)
+
+
+#Hyperparameter
+from sklearn.model_selection import  GridSearchCV
+param_gird = [
+    {'n_estimators':range(25,200,25),'max_depth':range(7,10,13)}
+]
+forest_reg = RandomForestRegressor(random_state=40)
+grid_search = GridSearchCV(forest_reg,param_gird,cv=5,scoring="neg_mean_squared_error")
+grid_search.fit(ges_feature,ges_label)
+print(grid_search.best_params_,grid_search.best_score_)
